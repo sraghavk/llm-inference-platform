@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-config
+  namespace: llm-inference
+data:
+  OLLAMA_MODEL: "phi"
+  OLLAMA_HOST: "0.0.0.0"

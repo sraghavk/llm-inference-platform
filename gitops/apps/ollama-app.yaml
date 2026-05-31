@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ollama
+  namespace: argocd
+  labels:
+    app: ollama
+    env: dev
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/sraghavk/llm-inference-platform.git
+    targetRevision: main
+    path: kubernetes/ollama
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: llm-inference
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        maxDuration: 2m
+        factor: 2
