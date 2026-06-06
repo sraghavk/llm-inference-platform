@@ -1,0 +1,53 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ollama-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+  - name: ollama.rules
+    interval: 30s
+    rules:
+
+    - alert: OllamaPodDown
+      expr: |
+        kube_pod_status_ready{namespace="llm-inference",pod=~"ollama.*",condition="true"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Ollama pod is down"
+        description: "Ollama pod {{ $labels.pod }} has been down for more than 1 minute."
+
+    - alert: OllamaHighRestarts
+      expr: |
+        increase(kube_pod_container_status_restarts_total{namespace="llm-inference",pod=~"ollama.*"}[1h]) > 3
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Ollama pod restarting frequently"
+        description: "Ollama pod {{ $labels.pod }} has restarted more than 3 times in the last hour."
+
+    - alert: OllamaHighMemory
+      expr: |
+        sum(container_memory_rss{namespace="llm-inference",pod=~"ollama.*"}) by (pod)
+        / 1024 / 1024 / 1024 > 3.5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Ollama high memory usage"
+        description: "Ollama pod {{ $labels.pod }} is using more than 3.5GB of memory."
+
+    - alert: NodeMemoryCritical
+      expr: |
+        (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Node memory critically low"
+        description: "Available memory is below 10% on {{ $labels.instance }}."
