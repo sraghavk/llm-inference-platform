@@ -122,3 +122,11 @@ kubectl apply -f gitops/apps/ollama-app.yaml
 
 Sri Kulkarni — Cloud Platform Engineer  
 [github.com/sraghavk](https://github.com/sraghavk)
+
+## Challenges I faced
+
+- WSL2 default memory (3.8GB) was too low for Ollama — had to configure `.wslconfig` to allocate 6GB
+- Open WebUI kept crashing due to memory pressure — scaled it down to free resources for the observability stack
+- Argo CD auto-sync kept bringing back scaled-down pods — had to disable sync policy via kubectl patch
+- `argocd-applicationset-controller` entered CrashLoopBackOff repeatedly after cluster restarts — fixed by reapplying CRDs
+- phi-2 model takes 2-3 minutes per response on CPU — acceptable for dev, documented as ADR for GPU migration
