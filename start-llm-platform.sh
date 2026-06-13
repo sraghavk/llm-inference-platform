@@ -9,6 +9,14 @@ sleep 30
 # Wait for nodes
 kubectl wait --for=condition=ready node --all --timeout=60s
 
+# Force delete any Unknown/Error pods from previous session
+echo "Cleaning up stale pods..."
+kubectl get pods -A 2>/dev/null | grep -E "Unknown|Error|CreateContainerConfigError" | \
+  awk '{print "kubectl delete pod " $2 " -n " $1 " --force --grace-period=0"}' | bash 2>/dev/null
+
+echo "Waiting for pods to reschedule (this takes 2-3 mins)..."
+sleep 90
+
 # Kill any existing port-forwards
 pkill -f "port-forward" 2>/dev/null
 sleep 2
