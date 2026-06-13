@@ -17,3 +17,18 @@ swap=2GB
 
 ## Result
 Pod started successfully, LLM serving requests on CPU.
+
+## Additional note: applicationset-controller CrashLoopBackOff
+
+After cluster restarts via docker stop/start, argocd-applicationset-controller
+repeatedly enters CrashLoopBackOff with "failed to wait for applicationset
+caches to sync" error.
+
+Fix: reapply Argo CD manifests + rollout restart the deployment:
+```bash
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl rollout restart deployment argocd-applicationset-controller -n argocd
+```
+
+This is a recurring issue specific to kind cluster restarts — CRDs
+sometimes aren't fully ready when the controller starts.
